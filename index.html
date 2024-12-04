@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html lang="es" class="dark:bg-gray-900">
 <head>
+    <!-- Critical CSS -->
+    <style>
+        .header-container {
+            min-height: 200px; /* Reserve space for header */
+            contain: layout;
+        }
+        .text-center { text-align: center; }
+        .mb-12 { margin-bottom: 3rem; }
+        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        @media (min-width: 640px) {
+            .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+            .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        }
+        @media (min-width: 768px) {
+            .text-5xl { font-size: 3rem; line-height: 1; }
+        }
+    </style>
+    
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="dist/output.css" as="style">
+    <link rel="preload" href="public/css/select2.min.css" as="style">
+    <link rel="preload" href="styles.css" as="style">
+    
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG69YP4YK3"></script>
     <script>
@@ -129,7 +153,7 @@
         </div>
 
         <!-- Introducción -->
-        <header class="text-center mb-12">
+        <header class="header-container text-center mb-12">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">¡Qué te dé su IBAN Marlaska! 🏨</h1>
             <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-4">Generador satírico de datos para hoteles españoles</p>
             <p class="text-sm text-gray-500 dark:text-gray-400 italic">⚠️ Esto es una sátira. Todos los datos generados son ficticios.</p>
