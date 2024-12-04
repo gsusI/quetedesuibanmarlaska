@@ -84,7 +84,7 @@ $(document).ready(function() {
             dropdownCssClass: 'dark:!bg-gray-700 dark:!text-white',
             templateSelection: function(data) {
                 if (!data.id) {
-                    return $('<span class="dark:text-gray-400">' + data.text + '</span>');
+                    return $('<span class="dark:text-gray-200">' + data.text + '</span>');
                 }
                 return $('<span class="dark:text-white">' + data.text + '</span>');
             }
