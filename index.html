@@ -2,39 +2,25 @@
 <html lang="es" class="dark:bg-gray-900">
 <head>
     <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG69YP4YK3"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
+        
+        // Basic configuration with minimal blocking
         gtag('js', new Date());
         gtag('config', 'G-FG69YP4YK3', {
-            page_path: window.location.pathname,
-        });
-    </script>
-    <script src="https://www.googletagmanager.com/gtag/js?id=G-FG69YP4YK3"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-
-        // Configure default consent settings
-        gtag('consent', 'default', {
-            'ad_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
-            'analytics_storage': 'denied',
-            'wait_for_update': 500
-        });
-
-        // Enable performance optimizations
-        gtag('set', {
-            'url_passthrough': true,
-            'ads_data_redaction': true,
+            'send_page_view': false,
             'transport_type': 'beacon'
         });
 
-        gtag('js', new Date());
-        gtag('config', 'G-FG69YP4YK3', {
-            'transport_type': 'beacon',
-            'send_page_view': false  // Defer initial pageview
+        // Defer consent and pageview until after page load
+        window.addEventListener('load', () => {
+            const cookiePreference = localStorage.getItem('cookiePreference');
+            gtag('consent', 'default', {
+                'analytics_storage': cookiePreference === 'accepted' ? 'granted' : 'denied'
+            });
+            gtag('event', 'page_view');
         });
     </script>
     <meta charset="UTF-8">
