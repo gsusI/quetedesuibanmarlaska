@@ -25,28 +25,7 @@
     <link rel="preload" href="public/css/select2.min.css" as="style">
     <link rel="preload" href="styles.css" as="style">
     
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG69YP4YK3"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        
-        // Basic configuration with minimal blocking
-        gtag('js', new Date());
-        gtag('config', 'G-FG69YP4YK3', {
-            'send_page_view': false,
-            'transport_type': 'beacon'
-        });
-
-        // Defer consent and pageview until after page load
-        window.addEventListener('load', () => {
-            const cookiePreference = localStorage.getItem('cookiePreference');
-            gtag('consent', 'default', {
-                'analytics_storage': cookiePreference === 'accepted' ? 'granted' : 'denied'
-            });
-            gtag('event', 'page_view');
-        });
-    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>¡Qué te dé su IBAN Marlaska! 🏨</title>
@@ -139,15 +118,42 @@
         <!-- Featured Image -->
         <div class="mb-12">
             <picture class="block aspect-[16/9] w-full">
-                <source srcset="images/image.webp" type="image/webp">
-                <source srcset="images/og-image.jpg" type="image/jpeg">
+                <!-- Mobile -->
+                <source 
+                    media="(max-width: 639px)"
+                    srcset="images/image.webp"
+                    type="image/webp"
+                    width="393"
+                    height="380">
+                <source 
+                    media="(max-width: 639px)"
+                    srcset="images/og-image.jpg"
+                    type="image/jpeg"
+                    width="393" 
+                    height="380">
+                
+                <!-- Desktop -->
+                <source 
+                    media="(min-width: 640px)"
+                    srcset="images/image.webp"
+                    type="image/webp"
+                    width="720"
+                    height="696">
+                <source 
+                    media="(min-width: 640px)"
+                    srcset="images/og-image.jpg"
+                    type="image/jpeg"
+                    width="720"
+                    height="696">
+                
                 <img 
                     src="images/og-image.jpg" 
                     alt="¡Qué te dé su IBAN Marlaska!" 
                     class="w-full h-full object-cover rounded-lg shadow-lg" 
-                    width="1200"
-                    height="675"
+                    width="720"
+                    height="696"
                     loading="eager"
+                    fetchpriority="high"
                 >
             </picture>
         </div>
@@ -339,6 +345,28 @@
     </div>
     <script src="codigos-postales-agrupados.js" defer></script>
     <script src="script.js" defer></script>
+    <!-- Google Analytics -->
+    <script async defer src="https://www.googletagmanager.com/gtag/js?id=G-FG69YP4YK3"></script>
+    <script async defer>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        
+        // Basic configuration with minimal blocking
+        gtag('js', new Date());
+        gtag('config', 'G-FG69YP4YK3', {
+            'send_page_view': false,
+            'transport_type': 'beacon'
+        });
+
+        // Defer consent and pageview until after page load
+        window.addEventListener('load', () => {
+            const cookiePreference = localStorage.getItem('cookiePreference');
+            gtag('consent', 'default', {
+                'analytics_storage': cookiePreference === 'accepted' ? 'granted' : 'denied'
+            });
+            gtag('event', 'page_view');
+        });
+    </script>
     <script>
         // Load cookie banner logic after initial render
         window.addEventListener('load', () => {
@@ -392,5 +420,6 @@
             }, {passive: true});
         });
     </script>
+    
 </body>
 </html>
