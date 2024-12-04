@@ -118,42 +118,15 @@
         <!-- Featured Image -->
         <div class="mb-12">
             <picture class="block aspect-[16/9] w-full">
-                <!-- Mobile -->
-                <source 
-                    media="(max-width: 639px)"
-                    srcset="images/image.webp"
-                    type="image/webp"
-                    width="393"
-                    height="380">
-                <source 
-                    media="(max-width: 639px)"
-                    srcset="images/og-image.jpg"
-                    type="image/jpeg"
-                    width="393" 
-                    height="380">
-                
-                <!-- Desktop -->
-                <source 
-                    media="(min-width: 640px)"
-                    srcset="images/image.webp"
-                    type="image/webp"
-                    width="720"
-                    height="696">
-                <source 
-                    media="(min-width: 640px)"
-                    srcset="images/og-image.jpg"
-                    type="image/jpeg"
-                    width="720"
-                    height="696">
-                
+                <source srcset="images/image.webp" type="image/webp">
+                <source srcset="images/og-image.jpg" type="image/jpeg">
                 <img 
                     src="images/og-image.jpg" 
                     alt="¡Qué te dé su IBAN Marlaska!" 
                     class="w-full h-full object-cover rounded-lg shadow-lg" 
-                    width="720"
-                    height="696"
+                    width="1200"
+                    height="675"
                     loading="eager"
-                    fetchpriority="high"
                 >
             </picture>
         </div>
@@ -346,25 +319,30 @@
     <script src="codigos-postales-agrupados.js" defer></script>
     <script src="script.js" defer></script>
     <!-- Google Analytics -->
-    <script async defer src="https://www.googletagmanager.com/gtag/js?id=G-FG69YP4YK3"></script>
-    <script async defer>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        
-        // Basic configuration with minimal blocking
-        gtag('js', new Date());
-        gtag('config', 'G-FG69YP4YK3', {
-            'send_page_view': false,
-            'transport_type': 'beacon'
-        });
-
-        // Defer consent and pageview until after page load
+    <script>
         window.addEventListener('load', () => {
-            const cookiePreference = localStorage.getItem('cookiePreference');
-            gtag('consent', 'default', {
-                'analytics_storage': cookiePreference === 'accepted' ? 'granted' : 'denied'
-            });
-            gtag('event', 'page_view');
+            setTimeout(() => {
+                // Load Google Tag Manager script
+                const gtmScript = document.createElement('script');
+                gtmScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FG69YP4YK3';
+                document.head.appendChild(gtmScript);
+
+                // Initialize Google Analytics
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-FG69YP4YK3', {
+                    'send_page_view': false,
+                    'transport_type': 'beacon'
+                });
+
+                // Defer consent and pageview until after page load
+                const cookiePreference = localStorage.getItem('cookiePreference');
+                gtag('consent', 'default', {
+                    'analytics_storage': cookiePreference === 'accepted' ? 'granted' : 'denied'
+                });
+                gtag('event', 'page_view');
+            }, 1000); // Delay by 1 second
         });
     </script>
     <script>
