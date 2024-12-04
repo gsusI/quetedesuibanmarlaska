@@ -80,14 +80,7 @@
       }
     }
     </script>
-    <script>
-        // Defer GA pageview until after critical content loads
-        document.addEventListener('DOMContentLoaded', () => {
-            requestIdleCallback(() => {
-                gtag('event', 'page_view');
-            });
-        });
-    </script>
+    
 </head>
 <body class="bg-white dark:bg-gray-900 min-h-screen">
     <div id="cookieBanner" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-4 shadow-lg transform transition-transform duration-300 translate-y-full z-50 border-t-2 border-gray-200 dark:border-gray-700">
