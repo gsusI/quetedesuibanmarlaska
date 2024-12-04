@@ -162,6 +162,9 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
 
         const fullName = generateFullName();
         const idNumber = generateId();
+        const idsep = generateIDSEP();
+        const landlinePhone = generateLandlinePhone();
+        const mobilePhone = generateMobilePhone();
         const iban = generateIBAN();
         const birthDate = generateBirthDate();
         const addressData = await generateAddress(selectedCity);
@@ -169,6 +172,9 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
         // Update UI with generated data
         document.getElementById('fullName').value = fullName;
         document.getElementById('idNumber').textContent = idNumber;
+        document.getElementById('idsep').textContent = idsep;
+        document.getElementById('landlinePhone').textContent = landlinePhone;
+        document.getElementById('mobilePhone').textContent = mobilePhone;
         document.getElementById('iban').textContent = iban;
         document.getElementById('birthDate').textContent = birthDate;
         document.getElementById('city').textContent = addressData.city;
@@ -182,6 +188,9 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
         addToHistory({
             fullName,
             idNumber,
+            idsep,
+            landlinePhone,
+            mobilePhone,
             iban,
             birthDate,
             city: addressData.city,
@@ -773,4 +782,39 @@ function toggleHistoryItem(index) {
     details.classList.toggle('hidden');
     expandBtn.style.transform = details.classList.contains('hidden') ? 
         'rotate(0deg)' : 'rotate(180deg)';
+}
+
+// Generate IDSEP (DNI support number)
+function generateIDSEP() {
+    // IDSEP format: AAA123456 (3 letters followed by 6 numbers)
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let idsep = '';
+    
+    // Generate 3 random letters
+    for (let i = 0; i < 3; i++) {
+        idsep += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    
+    // Generate 6 random numbers
+    idsep += String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+    
+    return idsep;
+}
+
+// Generate Spanish landline phone number
+function generateLandlinePhone() {
+    // Spanish landline prefixes (some common ones)
+    const landlinePrefixes = ['91', '93', '96', '95', '94', '98', '97', '92', '85', '86'];
+    const prefix = landlinePrefixes[Math.floor(Math.random() * landlinePrefixes.length)];
+    const number = String(Math.floor(Math.random() * 10000000)).padStart(7, '0');
+    return prefix + number;
+}
+
+// Generate Spanish mobile phone number
+function generateMobilePhone() {
+    // Spanish mobile prefixes
+    const mobilePrefixes = ['6', '7'];
+    const prefix = mobilePrefixes[Math.floor(Math.random() * mobilePrefixes.length)];
+    const number = String(Math.floor(Math.random() * 100000000)).padStart(8, '0');
+    return prefix + number;
 }

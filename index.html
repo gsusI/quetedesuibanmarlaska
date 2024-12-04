@@ -98,13 +98,13 @@
             <div class="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
                 <div class="mb-6 space-y-4">
                     <label for="selectedCity" class="block text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300">Ciudad para generar datos:</label>
-                    <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex flex-row gap-4">
                         <div class="flex-grow">
                             <select id="selectedCity" class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg hover:border-gray-400 focus:outline-none focus:border-blue-500 transition-colors">
                                 <option value="">Selecciona una ciudad...</option>
                             </select>
                         </div>
-                        <button id="randomCityBtn" class="w-full sm:w-auto flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 p-3 rounded-lg transition-colors" title="Ciudad aleatoria">🎲</button>
+                        <button id="randomCityBtn" class="w-auto flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 p-3 rounded-lg transition-colors" title="Ciudad aleatoria">🎲</button>
                     </div>
                     <button id="generateBtn" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg text-base sm:text-lg font-medium hover:bg-blue-700 transition-colors">
                         Generar Datos Aleatorios 🎲
@@ -131,6 +131,27 @@
                             <div class="flex items-center space-x-2">
                                 <span id="idNumber" class="font-medium flex-grow dark:text-white"></span>
                                 <button class="copy-btn text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300" data-field="idNumber">📋</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
+                            <span class="text-gray-600 dark:text-gray-400">IDSEP (Nº Soporte DNI):</span>
+                            <div class="flex items-center space-x-2">
+                                <span id="idsep" class="font-medium flex-grow dark:text-white"></span>
+                                <button class="copy-btn text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300" data-field="idsep">📋</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Teléfono Fijo:</span>
+                            <div class="flex items-center space-x-2">
+                                <span id="landlinePhone" class="font-medium flex-grow dark:text-white"></span>
+                                <button class="copy-btn text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300" data-field="landlinePhone">📋</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Teléfono Móvil:</span>
+                            <div class="flex items-center space-x-2">
+                                <span id="mobilePhone" class="font-medium flex-grow dark:text-white"></span>
+                                <button class="copy-btn text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300" data-field="mobilePhone">📋</button>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
