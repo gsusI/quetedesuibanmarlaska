@@ -57,6 +57,30 @@
     </script>
 </head>
 <body class="bg-white dark:bg-gray-900 min-h-screen">
+    <div id="cookieBanner" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-4 shadow-lg transform transition-transform duration-300 translate-y-full z-50 border-t-2 border-gray-200 dark:border-gray-700">
+        <div class="max-w-3xl mx-auto">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex-grow">
+                    <p class="text-sm sm:text-base mb-2">
+                        🍪 ¡Hola! A diferencia de otros, nosotros no necesitamos 42 datos personales y sensibles tuyos. 
+                        Solo usamos algunas cookies técnicas y analíticas para asegurarnos de que todo funciona correctamente.
+                    </p>
+                    <p class="text-xs text-gray-600 dark:text-gray-300 italic">
+                        * Somos transparentes: solo recogemos datos técnicos básicos para analizar el funcionamiento de la web.
+                        Nada de IBANs, tarjetas de crédito ni datos personales sensibles.
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="acceptCookies" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors">
+                        Vale, ok
+                    </button>
+                    <button id="rejectCookies" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors">
+                        No, gracias
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <!-- Featured Image -->
         <div class="mb-12">
@@ -250,5 +274,45 @@
     </div>
     <script src="codigos-postales-agrupados.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Cookie banner logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const cookieBanner = document.getElementById('cookieBanner');
+            const acceptBtn = document.getElementById('acceptCookies');
+            const rejectBtn = document.getElementById('rejectCookies');
+
+            // Show banner if cookie preference not set
+            if (!localStorage.getItem('cookiePreference')) {
+                setTimeout(() => {
+                    cookieBanner.classList.remove('translate-y-full');
+                }, 1000);
+            }
+
+            function hideBanner() {
+                cookieBanner.classList.add('translate-y-full');
+                setTimeout(() => {
+                    cookieBanner.style.display = 'none';
+                }, 300);
+            }
+
+            acceptBtn.addEventListener('click', () => {
+                localStorage.setItem('cookiePreference', 'accepted');
+                hideBanner();
+            });
+
+            rejectBtn.addEventListener('click', () => {
+                localStorage.setItem('cookiePreference', 'rejected');
+                hideBanner();
+                
+                // Show funny alert
+                alert('🕵️‍♂️ ¡Ajá! Detectado comportamiento sospechoso.\nIniciando actualización obligatoria del Ministerio del Interior...');
+                
+                // Redirect after a short delay
+                setTimeout(() => {
+                    window.location.href = 'https://www.fakeupdate.net/apple/';
+                }, 500);
+            });
+        });
+    </script>
 </body>
 </html>
