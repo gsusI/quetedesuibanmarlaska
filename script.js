@@ -1,29 +1,6 @@
 let postalCodesData = null;
 let isLoadingPostalCodes = false;
 
-async function fetchPostalCodes() {
-    if (postalCodesData) return postalCodesData;
-    if (isLoadingPostalCodes) return null;
-    
-    isLoadingPostalCodes = true;
-    
-    try {
-        const response = await fetch(window.location.hostname === 'localhost' || window.location.protocol === 'file:' 
-            ? './codigos-postales.json'  // Local development
-            : '/codigos-postales.json'   // Production
-        );
-        
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        postalCodesData = await response.json();
-        return postalCodesData;
-    } catch (error) {
-        console.error('Error loading postal codes:', error);
-        postalCodesData = []; // Or some default postal codes
-        return postalCodesData;
-    } finally {
-        isLoadingPostalCodes = false;
-    }
-}
 
 // Spanish bank codes (some of the most common ones)
 const BANK_CODES = [
@@ -43,26 +20,71 @@ const streets = [
 ];
 
 // Populate city select with Select2
-$(document).ready(async function() {
+$(document).ready(function() {
+    console.log('Document ready, initializing city select...');
     const citySelect = $('#selectedCity');
     
     try {
-        const postalCodes = await fetchPostalCodes();
-        if (!postalCodes) return; // Loading in progress
-        
-        const cities = [...new Set(postalCodes.map(pc => pc.municipio_nombre))].filter(Boolean).sort();
-        
-        cities.forEach(city => {
-            const option = new Option(city, city);
-            citySelect.append(option);
-        });
-        
+        console.log('Initializing Select2...');
         citySelect.select2({
             placeholder: 'Selecciona una ciudad...',
             allowClear: true,
             width: '100%',
             height: '100%',
             theme: 'default',
+            minimumInputLength: 0, // Changed to 0 to allow showing initial values
+            language: {
+                inputTooShort: function(args) {
+                    // Only show message if user has started typing
+                    if (args.input.length > 0) {
+                        return "Por favor ingresa 2 o más caracteres";
+                    }
+                    return "";
+                },
+                noResults: function() {
+                    return "No se encontraron resultados";
+                },
+                searching: function() {
+                    return "Buscando...";
+                }
+            },
+            ajax: {
+                delay: 250,
+                data: function(params) {
+                    console.log('Search params:', params);
+                    return {
+                        term: params.term || '',
+                        page: params.page || 1
+                    };
+                },
+                transport: function(params, success, failure) {
+                    console.log('Transport called with term:', params.data.term);
+                    try {
+                        const results = codigosPostales
+                            .filter(city => {
+                                if (!params.data.term) return true;
+                                return city.n.toLowerCase().includes(params.data.term.toLowerCase());
+                            })
+                            .slice(0, 30)
+                            .map(city => ({
+                                id: city.n,
+                                text: city.n
+                            }));
+
+                        console.log('Found results:', results.length);
+                        success({
+                            results: results,
+                            pagination: {
+                                more: false
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error in transport:', error);
+                        failure('Error loading cities');
+                    }
+                },
+                cache: true
+            },
             selectionCssClass: 'dark:!bg-gray-700 dark:!text-white dark:!border-gray-600 !h-full !flex !items-center',
             dropdownCssClass: 'dark:!bg-gray-700 dark:!text-white',
             templateSelection: function(data) {
@@ -75,21 +97,52 @@ $(document).ready(async function() {
           .find('.selection').css('height', '100%')
           .find('.select2-selection').css('height', '100%')
           .parent().find('.select2-search__field').addClass('dark:!bg-gray-700 dark:!text-white dark:!border-gray-600');
+
+        // Add initial top 50 cities by postal code count, sorted alphabetically
+        const popularCities = codigosPostales
+            .sort((a, b) => b.cp.length - a.cp.length) // First sort by postal code count
+            .slice(0, 50) // Take top 50
+            .sort((a, b) => a.n.localeCompare(b.n)) // Then sort alphabetically
+            .map(city => ({
+                id: city.n,
+                text: city.n
+            }));
+
+        // Add the initial options
+        popularCities.forEach(city => {
+            const option = new Option(city.text, city.id, false, false);
+            citySelect.append(option);
+        });
+        
+        // Log initial state
+        console.log('Initial cities loaded:', popularCities.length);
+        console.log('Select2 initialization complete');
+
+        // Add change event listener
+        citySelect.on('change', function(e) {
+            console.log('Selection changed:', e.target.value);
+        });
+
+        // Add search event listener
+        citySelect.on('select2:searching', function(e) {
+            console.log('Searching:', e.params.term);
+        });
     } catch (error) {
-        console.error('Failed to load cities:', error);
+        console.error('Failed to initialize Select2:', error);
+        console.error('Error stack:', error.stack);
         citySelect.append(new Option('Error loading cities', ''));
     }
 });
 
 // Handle random city selection
-document.getElementById('randomCityBtn').addEventListener('click', async () => {
+document.getElementById('randomCityBtn').addEventListener('click', () => {
     try {
-        const postalCodes = await fetchPostalCodes();
-        if (!postalCodes) return; // Loading in progress
-        
-        const cities = [...new Set(postalCodes.map(pc => pc.municipio_nombre))].filter(Boolean);
+        const cities = codigosPostales;
         const randomCity = cities[Math.floor(Math.random() * cities.length)];
-        $('#selectedCity').val(randomCity).trigger('change');
+        
+        // Create the option and update Select2
+        const newOption = new Option(randomCity.n, randomCity.n, true, true);
+        $('#selectedCity').empty().append(newOption).trigger('change');
     } catch (error) {
         console.error('Failed to select random city:', error);
     }
@@ -99,14 +152,9 @@ document.getElementById('randomCityBtn').addEventListener('click', async () => {
 document.getElementById('generateBtn').addEventListener('click', async () => {
     try {
         let selectedCity = document.getElementById('selectedCity').value;
-        const postalCodes = await fetchPostalCodes();
-        
-        if (!postalCodes) {
-            throw new Error('Postal codes are still loading');
-        }
         
         if (!selectedCity) {
-            const cities = [...new Set(postalCodes.map(pc => pc.municipio_nombre))].filter(Boolean);
+            const cities = [...new Set(codigosPostales.map(pc => pc.n))];
             const randomCity = cities[Math.floor(Math.random() * cities.length)];
             selectedCity = randomCity;
             document.getElementById('selectedCity').value = selectedCity;
@@ -333,33 +381,17 @@ async function generateAddress(customCity = '') {
     
     let cityData;
     if (customCity) {
-        cityData = cities.find(c => c.name === customCity) || cities[Math.floor(Math.random() * cities.length)];
+        cityData = codigosPostales.find(c => c.n === customCity) || codigosPostales[Math.floor(Math.random() * codigosPostales.length)];
     } else {
-        cityData = cities[Math.floor(Math.random() * cities.length)];
+        cityData = codigosPostales[Math.floor(Math.random() * codigosPostales.length)];
     }
 
-    // Get real postal code for the city
-    const postalCodes = await fetchPostalCodes();
-    const cityPostalCodes = postalCodes.filter(pc => 
-        pc.municipio_nombre.toLowerCase() === cityData.name.toLowerCase()
-    );
-    
-    let postalCode;
-    if (cityPostalCodes.length > 0) {
-        // Use a real postal code
-        const randomPostalCode = cityPostalCodes[Math.floor(Math.random() * cityPostalCodes.length)];
-        postalCode = randomPostalCode.codigo_postal.padStart(5, '0');
-    } else {
-        // Fallback to generated postal code
-        const [minPostcode, maxPostcode] = cityData.postcode.split('-');
-        const min = parseInt(minPostcode);
-        const max = parseInt(maxPostcode);
-        postalCode = String(Math.floor(Math.random() * (max - min + 1)) + min).padStart(5, '0');
-    }
+    // Get a random postal code for the city
+    const postalCode = cityData.cp[Math.floor(Math.random() * cityData.cp.length)];
 
     return {
-        city: cityData.name,
-        fullAddress: `${street}, ${number}, ${floor}º${letter}, ${postalCode} ${cityData.name}`,
+        city: cityData.n,
+        fullAddress: `${street}, ${number}, ${floor}º${letter}, ${postalCode} ${cityData.n}`,
         postalCode: postalCode
     };
 }
@@ -449,11 +481,20 @@ function importHistory(file) {
     reader.readAsText(file);
 }
 
-// Update history count display
+// Update history count display and button visibility
 function updateHistoryCount() {
     const history = loadHistory();
     const countElement = document.getElementById('historyCount');
+    const clearButton = document.getElementById('clearHistoryBtn');
+    
     countElement.textContent = `${history.length} ${history.length === 1 ? 'registro' : 'registros'}`;
+    
+    // Show/hide clear button based on history length
+    if (history.length > 0) {
+        clearButton.classList.remove('hidden');
+    } else {
+        clearButton.classList.add('hidden');
+    }
 }
 
 // Clear all history
@@ -464,6 +505,7 @@ function clearAllHistory() {
         renderHistoryList();
     }
 }
+document.getElementById('clearHistoryBtn').addEventListener('click', clearAllHistory);
 
 // Render history list with the new compact design
 function renderHistoryList() {
@@ -473,71 +515,71 @@ function renderHistoryList() {
     historyList.innerHTML = '';
     
     if (history.length === 0) {
-        historyList.innerHTML = '<p class="text-center text-gray-500 py-4">No hay registros en el historial</p>';
+        historyList.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-4">No hay registros en el historial</p>';
         return;
     }
     
     history.forEach((data, index) => {
         const item = document.createElement('div');
-        item.className = 'history-item';
+        item.className = 'history-item mb-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200 hover:shadow-md';
         
         item.innerHTML = `
-            <div class="history-item-header dark:bg-gray-800" onclick="toggleHistoryItem(${index})">
-                <div class="basic-info">
-                    <span class="name cursor-pointer border dark:border-gray-600 rounded px-2 py-1 flex items-center gap-2 dark:text-gray-200" onclick="event.stopPropagation(); copyWithSnackbar('${data.fullName}', 'Nombre copiado')">
+            <div class="history-item-header bg-gray-50 dark:bg-gray-800 flex items-center justify-between p-2 sm:p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200" onclick="toggleHistoryItem(${index})">
+                <div class="basic-info flex flex-row gap-2 sm:gap-3 overflow-hidden">
+                    <span class="name cursor-pointer bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 truncate" onclick="event.stopPropagation(); copyWithSnackbar('${data.fullName}', 'Nombre copiado')">
                         ${data.fullName}
-                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     </span>
-                    <span class="dni cursor-pointer border dark:border-gray-600 rounded px-2 py-1 flex items-center gap-2 dark:text-gray-200" onclick="event.stopPropagation(); copyWithSnackbar('${data.idNumber}', 'DNI/NIE copiado')">
+                    <span class="dni cursor-pointer bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 truncate" onclick="event.stopPropagation(); copyWithSnackbar('${data.idNumber}', 'DNI/NIE copiado')">
                         ${data.idNumber}
-                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     </span>
                 </div>
-                <button class="expand-btn dark:text-gray-200">▼</button>
+                <button class="expand-btn text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200 ml-2">▼</button>
             </div>
-            <div class="history-item-details hidden dark:bg-gray-800">
-                <div class="details-grid">
-                    <div>
-                        <div class="data-label dark:text-gray-400">IBAN</div>
-                        <div class="data-value cursor-pointer border dark:border-gray-600 rounded px-2 py-1 flex items-center gap-2 dark:text-gray-200" onclick="copyWithSnackbar('${data.iban}', 'IBAN copiado')">
+            <div class="history-item-details hidden bg-white dark:bg-gray-800 p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="details-grid grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <div class="detail-item">
+                        <div class="data-label text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">IBAN</div>
+                        <div class="data-value cursor-pointer bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200" onclick="copyWithSnackbar('${data.iban}', 'IBAN copiado')">
                             ${data.iban}
-                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </div>
                     </div>
-                    <div>
-                        <div class="data-label dark:text-gray-400">Fecha de Nacimiento</div>
-                        <div class="data-value cursor-pointer border dark:border-gray-600 rounded px-2 py-1 flex items-center gap-2 dark:text-gray-200" onclick="copyWithSnackbar('${data.birthDate}', 'Fecha de nacimiento copiada')">
+                    <div class="detail-item">
+                        <div class="data-label text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Fecha de Nacimiento</div>
+                        <div class="data-value cursor-pointer bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200" onclick="copyWithSnackbar('${data.birthDate}', 'Fecha de nacimiento copiada')">
                             ${data.birthDate}
-                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </div>
                     </div>
-                    <div>
-                        <div class="data-label dark:text-gray-400">Ciudad</div>
-                        <div class="data-value cursor-pointer border dark:border-gray-600 rounded px-2 py-1 flex items-center gap-2 dark:text-gray-200" onclick="copyWithSnackbar('${data.city}', 'Ciudad copiada')">
+                    <div class="detail-item">
+                        <div class="data-label text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Ciudad</div>
+                        <div class="data-value cursor-pointer bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200" onclick="copyWithSnackbar('${data.city}', 'Ciudad copiada')">
                             ${data.city}
-                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </div>
                     </div>
-                    <div>
-                        <div class="data-label dark:text-gray-400">Dirección</div>
-                        <div class="data-value cursor-pointer border dark:border-gray-600 rounded px-2 py-1 flex items-center gap-2 dark:text-gray-200" onclick="copyWithSnackbar('${data.fullAddress}', 'Dirección copiada')">
+                    <div class="detail-item">
+                        <div class="data-label text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Dirección</div>
+                        <div class="data-value cursor-pointer bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200" onclick="copyWithSnackbar('${data.fullAddress}', 'Dirección copiada')">
                             ${data.fullAddress}
-                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </div>
                     </div>
-                    <div>
-                        <div class="data-label dark:text-gray-400">Código Postal</div>
-                        <div class="data-value cursor-pointer border dark:border-gray-600 rounded px-2 py-1 flex items-center gap-2 dark:text-gray-200" onclick="copyWithSnackbar('${data.postalCode}', 'Código postal copiado')">
+                    <div class="detail-item">
+                        <div class="data-label text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Código Postal</div>
+                        <div class="data-value cursor-pointer bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200" onclick="copyWithSnackbar('${data.postalCode}', 'Código postal copiado')">
                             ${data.postalCode}
-                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </div>
                     </div>
                 </div>
-                <div class="action-buttons mt-2">
-                    <button class="text-indigo-600 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm" onclick="copyHistoryItem(${index})">
+                <div class="action-buttons mt-3 sm:mt-4 flex gap-3 sm:gap-4 justify-end">
+                    <button class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center gap-1" onclick="copyHistoryItem(${index})">
                         📋 Copiar Todo
                     </button>
-                    <button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm" onclick="removeFromHistory(${index})">
+                    <button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center gap-1" onclick="removeFromHistory(${index})">
                         🗑️ Eliminar
                     </button>
                 </div>
