@@ -313,11 +313,16 @@
     <script src="script.js" defer></script>
     <!-- Google Analytics -->
     <script>
+        let gtagLoaded = false;
         window.addEventListener('load', () => {
             setTimeout(() => {
                 // Load Google Tag Manager script
                 const gtmScript = document.createElement('script');
                 gtmScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FG69YP4YK3';
+                gtmScript.onload = () => {
+                    gtagLoaded = true;
+                    initializeCookieBanner();
+                };
                 document.head.appendChild(gtmScript);
 
                 // Initialize Google Analytics
@@ -337,10 +342,10 @@
                 gtag('event', 'page_view');
             }, 1000); // Delay by 1 second
         });
-    </script>
-    <script>
-        // Load cookie banner logic after initial render
-        window.addEventListener('load', () => {
+
+        function initializeCookieBanner() {
+            if (!gtagLoaded) return;
+
             const cookieBanner = document.getElementById('cookieBanner');
             const acceptBtn = document.getElementById('acceptCookies');
             const rejectBtn = document.getElementById('rejectCookies');
