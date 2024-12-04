@@ -21,11 +21,9 @@ const streets = [
 
 // Populate city select with Select2
 $(document).ready(function() {
-    console.log('Document ready, initializing city select...');
     const citySelect = $('#selectedCity');
     
     try {
-        console.log('Initializing Select2...');
         citySelect.select2({
             placeholder: 'Selecciona una ciudad...',
             allowClear: true,
@@ -51,14 +49,12 @@ $(document).ready(function() {
             ajax: {
                 delay: 250,
                 data: function(params) {
-                    console.log('Search params:', params);
                     return {
                         term: params.term || '',
                         page: params.page || 1
                     };
                 },
                 transport: function(params, success, failure) {
-                    console.log('Transport called with term:', params.data.term);
                     try {
                         const results = codigosPostales
                             .filter(city => {
@@ -71,7 +67,6 @@ $(document).ready(function() {
                                 text: city.n
                             }));
 
-                        console.log('Found results:', results.length);
                         success({
                             results: results,
                             pagination: {
@@ -115,17 +110,13 @@ $(document).ready(function() {
         });
         
         // Log initial state
-        console.log('Initial cities loaded:', popularCities.length);
-        console.log('Select2 initialization complete');
 
         // Add change event listener
         citySelect.on('change', function(e) {
-            console.log('Selection changed:', e.target.value);
         });
 
         // Add search event listener
         citySelect.on('select2:searching', function(e) {
-            console.log('Searching:', e.params.term);
         });
     } catch (error) {
         console.error('Failed to initialize Select2:', error);
@@ -184,19 +175,6 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
         const resultCard = document.getElementById('resultCard');
         resultCard.classList.remove('hidden');
 
-        // Add to history
-        addToHistory({
-            fullName,
-            idNumber,
-            idsep,
-            landlinePhone,
-            mobilePhone,
-            iban,
-            birthDate,
-            city: addressData.city,
-            fullAddress: addressData.fullAddress,
-            postalCode: addressData.postalCode
-        });
     } catch (error) {
         console.error('Failed to generate data:', error);
         alert('Error generating data. Please try again.');
@@ -695,6 +673,21 @@ function copyFieldToClipboard(fieldId) {
         copyWithSnackbar(text, '¡Campo copiado al portapapeles!');
         button.textContent = '✅';
         setTimeout(() => button.textContent = originalEmoji, 1000);
+
+        // Add to history when copying individual field
+        const data = {
+            fullName: document.getElementById('fullName').value,
+            idNumber: document.getElementById('idNumber').textContent,
+            idsep: document.getElementById('idsep').textContent,
+            landlinePhone: document.getElementById('landlinePhone').textContent,
+            mobilePhone: document.getElementById('mobilePhone').textContent,
+            iban: document.getElementById('iban').textContent,
+            birthDate: document.getElementById('birthDate').textContent,
+            city: document.getElementById('city').textContent,
+            fullAddress: document.getElementById('address').textContent,
+            postalCode: document.getElementById('postalCode').textContent
+        };
+        addToHistory(data);
     } catch (error) {
         console.error('Error in copyFieldToClipboard:', error);
     }
@@ -704,11 +697,16 @@ function copyFieldToClipboard(fieldId) {
 function copyAllToClipboard() {
     try {
         const data = {
-            'Nombre': document.getElementById('fullName').value,
-            'DNI/NIE': document.getElementById('idNumber').textContent,
-            'IBAN': document.getElementById('iban').textContent,
-            'Fecha de Nacimiento': document.getElementById('birthDate').textContent,
-            'Dirección': document.getElementById('address').textContent
+            fullName: document.getElementById('fullName').value,
+            idNumber: document.getElementById('idNumber').textContent,
+            idsep: document.getElementById('idsep').textContent,
+            landlinePhone: document.getElementById('landlinePhone').textContent,
+            mobilePhone: document.getElementById('mobilePhone').textContent,
+            iban: document.getElementById('iban').textContent,
+            birthDate: document.getElementById('birthDate').textContent,
+            city: document.getElementById('city').textContent,
+            fullAddress: document.getElementById('address').textContent,
+            postalCode: document.getElementById('postalCode').textContent
         };
 
         const text = Object.entries(data)
@@ -716,6 +714,9 @@ function copyAllToClipboard() {
             .join('\n');
 
         copyWithSnackbar(text, '¡Datos copiados al portapapeles!');
+        
+        // Add to history when copying all data
+        addToHistory(data);
     } catch (error) {
         console.error('Error in copyAllToClipboard:', error);
     }
