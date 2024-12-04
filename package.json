@@ -4,16 +4,18 @@
   "description": "IBAN Marlaska website",
   "scripts": {
     "dev": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
-    "copy-deps": "mkdir -p public/js public/css && cp node_modules/jquery/dist/jquery.min.js public/js/ && cp node_modules/select2/dist/js/select2.min.js public/js/ && cp node_modules/select2/dist/css/select2.min.css public/css/",
-    "build": "npm run copy-deps && tailwindcss -i ./src/input.css -o ./dist/output.css --minify"
+    "build": "node build.js",
+    "start": "npx serve ."
   },
   "dependencies": {
+    "@builder.io/partytown": "^0.10.2",
     "jquery": "^3.7.1",
     "select2": "^4.1.0-rc.0"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.1",
     "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.33"
+    "postcss": "^8.4.33",
+    "serve": "^14.2.1",
+    "tailwindcss": "^3.4.1"
   }
-} 
+}
