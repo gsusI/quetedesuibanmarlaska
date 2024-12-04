@@ -6,6 +6,22 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+
+      // Set default consent mode v2 parameters
+      gtag('consent', 'default', {
+          'ad_storage': 'denied',
+          'ad_user_data': 'denied',
+          'ad_personalization': 'denied',
+          'analytics_storage': 'denied',
+          'wait_for_update': 500
+      });
+
+      // Enable URL passthrough for better measurement when cookies are denied
+      gtag('set', 'url_passthrough', true);
+
+      // Enable ads data redaction when ad storage is denied
+      gtag('set', 'ads_data_redaction', true);
+
       gtag('js', new Date());
 
       gtag('config', 'G-FG69YP4YK3');
@@ -103,7 +119,7 @@
             <p class="text-sm text-gray-500 dark:text-gray-400 italic">⚠️ Esto es una sátira. Todos los datos generados son ficticios.</p>
             <div class="mt-6 text-base sm:text-lg text-gray-700 dark:text-gray-300">
                 <p class="mb-3">Desde el 2 de diciembre, tienes que compartir <strong>42 datos personales</strong> cada vez que te hospedes en un hotel. 😱</p>
-                <p>Así es, el <strong><a href="https://www.boe.es/buscar/doc.php?id=BOE-A-2023-31798" class="text-blue-600 dark:text-blue-400 hover:underline">Real Decreto 933/2021</a></strong> ya ha implementado el sistema <strong>SES.HOSPEDAJES</strong>. Queremos contártelo de forma divertida... o no tanto. 😉</p>
+                <p>Así es, el <strong><a href="https://www.boe.es/diario_boe/txt.php?id=BOE-A-2021-17461" class="text-blue-600 dark:text-blue-400 hover:underline">Real Decreto 933/2021</a></strong> ya ha implementado el sistema <strong>SES.HOSPEDAJES</strong>. Queremos contártelo de forma divertida... o no tanto. 😉</p>
             </div>
         </header>
 
@@ -258,7 +274,7 @@
         <!-- Información Detallada -->
         <section class="prose prose-base sm:prose-lg dark:prose-invert mx-auto mb-12">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">Una Historia de Vigilancia y Datos: El Nuevo Registro de Viajeros</h2>
-            <p class="text-base sm:text-lg leading-relaxed mb-4 dark:text-gray-300">Desde el 2 de diciembre, al registrarte en un hotel, tienes que entregar no solo tu DNI, sino también tu dirección, número de teléfono, email, IBAN, número de tarjeta y más. 😳 Esta es la realidad que ha traído el <strong><a href="https://www.boe.es/buscar/doc.php?id=BOE-A-2023-31798" class="text-blue-600 dark:text-blue-400 hover:underline">Real Decreto 933/2021</a></strong>.</p>
+            <p class="text-base sm:text-lg leading-relaxed mb-4 dark:text-gray-300">Desde el 2 de diciembre, al registrarte en un hotel, tienes que entregar no solo tu DNI, sino también tu dirección, número de teléfono, email, IBAN, número de tarjeta y más. 😳 Esta es la realidad que ha traído el <strong><a href="https://www.boe.es/diario_boe/txt.php?id=BOE-A-2021-17461" class="text-blue-600 dark:text-blue-400 hover:underline">Real Decreto 933/2021</a></strong>.</p>
             <p class="text-base sm:text-lg leading-relaxed mb-4 dark:text-gray-300">El Ministerio del Interior justifica esta medida como una forma de combatir el terrorismo y el crimen organizado. 🕵️‍♂️ Sin embargo, muchos cuestionan si recopilar tal cantidad de información de todos los viajeros es realmente necesario o si es una invasión a la privacidad. 🚨</p>
             <p class="text-base sm:text-lg leading-relaxed mb-4 dark:text-gray-300">Además, el <strong>Tribunal de Justicia de la Unión Europea</strong> ha dictaminado que la recopilación masiva de datos solo puede justificarse en casos de amenaza real y de manera transitoria. ⚖️ Entonces, ¿está España yendo en contra de las normativas europeas? 🇪🇺❓</p>
             <p class="text-base sm:text-lg leading-relaxed mb-6 dark:text-gray-300">El sector turístico teme que esta medida pueda afectar la competitividad y la confianza de los viajeros. Después de todo, no todos están dispuestos a compartir tanta información personal solo para pasar una noche fuera. 🛌</p>
@@ -275,7 +291,7 @@
                 <p class="text-base sm:text-lg">Para más información sobre esta polémica normativa:</p>
                 <div class="flex flex-wrap justify-center gap-4 text-sm sm:text-base">
                     <a href="https://www.eldiario.es/politica/hoteleros-expertos-denuncian-invasion-privacidad-nuevo-registro-viajeros-interior_1_11701914.html" class="text-blue-600 dark:text-blue-400 hover:underline">ElDiario</a>
-                    <a href="https://www.boe.es/buscar/doc.php?id=BOE-A-2023-31798" class="text-blue-600 dark:text-blue-400 hover:underline">BOE Oficial</a>
+                    <a href="https://www.boe.es/diario_boe/txt.php?id=BOE-A-2021-17461" class="text-blue-600 dark:text-blue-400 hover:underline">BOE Oficial</a>
                     <a href="https://www.antena3.com/noticias/economia/vulnera-intimidad-nuevo-registro-viajeros_20241202674e19847337f20001b2d2a0.html" class="text-blue-600 dark:text-blue-400 hover:underline">Antena 3</a>
                 </div>
             </div>
@@ -305,20 +321,31 @@
             }
 
             acceptBtn.addEventListener('click', () => {
+                // Update consent mode when user accepts
+                gtag('consent', 'update', {
+                    'ad_storage': 'granted',
+                    'ad_user_data': 'granted',
+                    'ad_personalization': 'granted',
+                    'analytics_storage': 'granted'
+                });
                 localStorage.setItem('cookiePreference', 'accepted');
                 hideBanner();
             });
 
             rejectBtn.addEventListener('click', () => {
+                // Keep consent denied when user rejects
+                gtag('consent', 'update', {
+                    'ad_storage': 'denied',
+                    'ad_user_data': 'denied',
+                    'ad_personalization': 'denied',
+                    'analytics_storage': 'denied'
+                });
                 localStorage.setItem('cookiePreference', 'rejected');
                 hideBanner();
                 
-                // Show funny alert
-                alert('🕵️‍♂️ ¡Ajá! Detectado comportamiento sospechoso.\nIniciando actualización obligatoria del Ministerio del Interior...');
-                
                 // Redirect after a short delay
                 setTimeout(() => {
-                    window.location.href = 'https://www.fakeupdate.net/apple/';
+                    window.location.href = 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2021-17461';
                 }, 500);
             });
         });
