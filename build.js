@@ -32,9 +32,6 @@ try {
         'public/css/select2.min.css'
     );
 
-    // Copy partytown
-    execSync('npx partytown copylib public/~partytown', { stdio: 'inherit' });
-
     // Build tailwind
     execSync('npx tailwindcss -i ./src/input.css -o ./dist/output.css --minify', {
         stdio: 'inherit'
@@ -44,4 +41,4 @@ try {
 } catch (error) {
     console.error('Build failed:', error);
     process.exit(1);
-} 
+}
