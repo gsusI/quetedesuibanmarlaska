@@ -3,4 +3,15 @@ command = "npm install && npm run build"
 publish = "."
 
 [build.environment]
-NODE_VERSION = "20" 
+NODE_VERSION = "20"
+
+[[headers]]
+  for = "/public/*"
+  [headers.values]
+    Content-Type = "application/javascript"
+
+[[headers]]
+  for = "/public/css/*"
+  [headers.values]
+    Content-Type = "text/css"
+  
