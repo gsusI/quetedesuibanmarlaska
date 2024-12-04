@@ -56,8 +56,8 @@
     <!-- Local Dependencies -->
     <link href="dist/output.css" rel="stylesheet">
     <link href="public/css/select2.min.css" rel="stylesheet" />
-    <script src="public/js/jquery.min.js"></script>
-    <script src="public/js/select2.min.js"></script>
+    <script defer src="public/js/jquery.min.js"></script>
+    <script defer src="public/js/select2.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 
     <!-- Structured Data -->
@@ -109,7 +109,11 @@
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <!-- Featured Image -->
         <div class="mb-12">
-            <img src="images/og-image.jpg" alt="¡Qué te dé su IBAN Marlaska!" class="w-full h-auto rounded-lg shadow-lg">
+            <picture>
+                <source srcset="images/image.webp" type="image/webp">
+                <source srcset="images/og-image.jpg" type="image/jpeg">
+                <img src="images/og-image.jpg" alt="¡Qué te dé su IBAN Marlaska!" class="w-full h-auto rounded-lg shadow-lg" loading="lazy">
+            </picture>
         </div>
 
         <!-- Introducción -->
@@ -297,57 +301,59 @@
             </div>
         </footer>
     </div>
-    <script src="codigos-postales-agrupados.js"></script>
-    <script src="script.js"></script>
+    <script src="codigos-postales-agrupados.js" defer></script>
+    <script src="script.js" defer></script>
     <script>
-        // Cookie banner logic
-        document.addEventListener('DOMContentLoaded', function() {
+        // Load cookie banner logic after initial render
+        window.addEventListener('load', () => {
             const cookieBanner = document.getElementById('cookieBanner');
             const acceptBtn = document.getElementById('acceptCookies');
             const rejectBtn = document.getElementById('rejectCookies');
 
-            // Show banner if cookie preference not set
+            // Show banner if needed
             if (!localStorage.getItem('cookiePreference')) {
-                setTimeout(() => {
+                requestIdleCallback(() => {
                     cookieBanner.classList.remove('translate-y-full');
-                }, 1000);
-            }
-
-            function hideBanner() {
-                cookieBanner.classList.add('translate-y-full');
-                setTimeout(() => {
-                    cookieBanner.style.display = 'none';
-                }, 300);
-            }
-
-            acceptBtn.addEventListener('click', () => {
-                // Update consent mode when user accepts
-                gtag('consent', 'update', {
-                    'ad_storage': 'granted',
-                    'ad_user_data': 'granted',
-                    'ad_personalization': 'granted',
-                    'analytics_storage': 'granted'
                 });
-                localStorage.setItem('cookiePreference', 'accepted');
-                hideBanner();
-            });
+            }
+
+            const hideBanner = () => {
+                cookieBanner.classList.add('translate-y-full');
+                requestAnimationFrame(() => {
+                    cookieBanner.style.display = 'none';
+                });
+            };
+
+            // Use passive event listeners
+            acceptBtn.addEventListener('click', () => {
+                requestIdleCallback(() => {
+                    gtag('consent', 'update', {
+                        'ad_storage': 'granted',
+                        'ad_user_data': 'granted', 
+                        'ad_personalization': 'granted',
+                        'analytics_storage': 'granted'
+                    });
+                    localStorage.setItem('cookiePreference', 'accepted');
+                    hideBanner();
+                });
+            }, {passive: true});
 
             rejectBtn.addEventListener('click', () => {
-                // Keep consent denied when user rejects
-                gtag('consent', 'update', {
-                    'ad_storage': 'denied',
-                    'ad_user_data': 'denied',
-                    'ad_personalization': 'denied',
-                    'analytics_storage': 'denied'
+                requestIdleCallback(() => {
+                    gtag('consent', 'update', {
+                        'ad_storage': 'denied',
+                        'ad_user_data': 'denied',
+                        'ad_personalization': 'denied',
+                        'analytics_storage': 'denied'
+                    });
+                    localStorage.setItem('cookiePreference', 'rejected');
+                    hideBanner();
+                    
+                    requestAnimationFrame(() => {
+                        window.location.href = 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2021-17461';
+                    });
                 });
-                localStorage.setItem('cookiePreference', 'rejected');
-                hideBanner();
-                
-                // Redirect after a short delay
-                setTimeout(() => {
-                    window.location.href = 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2021-17461';
-                }, 500);
-            });
+            }, {passive: true});
         });
     </script>
 </body>
