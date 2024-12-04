@@ -1,0 +1,18 @@
+{
+  "name": "que-te-de-su-iban-marlaska",
+  "version": "1.0.0",
+  "description": "IBAN Marlaska website",
+  "scripts": {
+    "dev": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify"
+  },
+  "dependencies": {
+    "jquery": "^3.7.1",
+    "select2": "^4.1.0-rc.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.33"
+  }
+} 
